@@ -1,0 +1,42 @@
+version: '3.8'
+services: 
+  app: &app
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: app
+    env_file:
+      - ./.env.local
+    environment:
+      - BUNDLE_PATH=/bundle
+    image: app
+    command: bundle exec puma -b tcp://0.0.0.0:3000
+    ports:
+      - '3000:3000'
+    volumes:
+      - bundle_path:/bundle
+      - .:/app
+    tty: true
+    stdin_open: true
+  
+  db:
+    image: postgres:14.8-alpine3.18
+    environment:
+      POSTGRES_DB: "project_sandbox_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "123"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./tmp:/tmp
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+volumes:
+  postgres:
+  bundle_path:
+
+networks:
+  default:
+    name: project-sandbox-network
